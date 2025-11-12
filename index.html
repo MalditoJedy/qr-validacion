@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Validador QR con Google Sheets</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+    #reader {
+      width: 300px;
+      margin: auto;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 1.2em;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>Escáner y Validador de Código QR</h1>
+  <div id="reader"></div>
+  <div id="result">Esperando escaneo...</div>
+
+  <script>
+    // Reemplaza esta URL con la tuya publicada como CSV
+    const sheetUrl = 'https://docs.google.com/spreadsheets/d/1xhPWIWxN6oN0Jss_mxSOtM5bweIVFVOG9aTWHBLb93w/edit?usp=sharing';
+
+    function validateCode(code) {
+      fetch(sheetUrl)
+        .then(response => response.text())
+        .then(text => {
+          const rows = text.split('\n').map(row => row.trim());
+          const found = rows.some(row => row.includes(code));
+          document.getElementById('result').textContent = found
+            ? "✅ Código válido"
+            : "❌ Código no encontrado";
+        })
+        .catch(error => {
+          console.error("Error al cargar la hoja de cálculo:", error);
+          document.getElementById('result').textContent = "⚠️ Error al validar";
+        });
+    }
+
+    function onScanSuccess(decodedText, decodedResult) {
+      validateCode(decodedText);
+    }
+
+    const html5QrCode = new Html5Qrcode("reader");
+    html5QrCode.start(
+      { facingMode: "environment" },
+      { fps: 10, qrbox: 250 },
+      onScanSuccess
+    );
+  </script>
+</body>
+</html>
